@@ -1800,7 +1800,7 @@ export default function Home() {
                       <span className="slabel">Industry / Niche</span>
                       <select value={campNiche} onChange={e=>setCampNiche(e.target.value)}
                         style={{width:'100%',background:'#050505',border:'1px solid #1a1a1a',color:'#EDE8DC',fontFamily:"'EB Garamond',serif",fontSize:15,padding:'9px 12px',outline:'none'}}>
-                        {['Tree Service','Lawn Care','Roofing','HVAC','Plumbing','Pressure Washing','Pest Control','Remodeling','Landscaping','Painting','Pool Service','Electrician','General Contractor'].map(n=>(
+                        {['Tree Service','Lawn Care','Roofing','HVAC','Plumbing','Pressure Washing','Pest Control','Remodeling','Landscaping','Painting','Pool Service','Electrician','General Contractor','Med Spa','Dental Practice','Nail Salon','Auto Detailing','Auto Repair','Concrete','Marketing Agency','Restaurant & Cafe','Gutter Cleaning'].map(n=>(
                           <option key={n} value={n}>{n}</option>
                         ))}
                       </select>

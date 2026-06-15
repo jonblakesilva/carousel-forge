@@ -3,6 +3,7 @@ import { BOOK_TEMPLATES_2 } from './templates-books2';
 import { SALES_AND_RETENTION_TEMPLATES } from './templates-sales-retention';
 import { LEAD_GEN_TEMPLATES } from './templates-leadgen';
 import { INDUSTRY2_TEMPLATES } from './templates-industry2';
+import { TEMPLATES_NEW_NICHES } from './templates-new-niches';
 
 export interface CarouselTemplate {
   id: string;
