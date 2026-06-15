@@ -1800,7 +1800,7 @@ export default function Home() {
                       <span className="slabel">Industry / Niche</span>
                       <select value={campNiche} onChange={e=>setCampNiche(e.target.value)}
                         style={{width:'100%',background:'#050505',border:'1px solid #1a1a1a',color:'#EDE8DC',fontFamily:"'EB Garamond',serif",fontSize:15,padding:'9px 12px',outline:'none'}}>
-                        {['Tree Service','Lawn Care','Roofing','HVAC','Plumbing','Pressure Washing','Pest Control','Remodeling','Landscaping','Painting','Pool Service','Electrician','General Contractor','Med Spa','Dental Practice','Nail Salon','Auto Detailing','Auto Repair','Concrete','Marketing Agency','Restaurant & Cafe','Gutter Cleaning'].map(n=>(
+                        {['Tree Service','Lawn Care','Roofing','HVAC','Plumbing','Pressure Washing','Pest Control','Remodeling','Landscaping','Painting','Pool Service','Electrician','General Contractor','Med Spa','Dental Practice','Nail Salon','Auto Detailing','Auto Repair','Concrete','Marketing Agency','Restaurant & Cafe','Gutter Cleaning','Window Cleaning'].map(n=>(
                           <option key={n} value={n}>{n}</option>
                         ))}
                       </select>
@@ -1931,6 +1931,72 @@ export default function Home() {
                 {/* RESULTS */}
                 {campResult && (<>
 
+                  {/* Copy Full Brief button */}
+                  <div style={{display:'flex',justifyContent:'flex-end',marginBottom:8}}>
+                    <button className="btn-s" style={{fontSize:10,padding:'5px 12px'}}
+                      onClick={async()=>{
+                        const r = campResult;
+                        const brief = [
+                          '═══ CAMPAIGN BRIEF: ' + (r.offerName||'') + ' ═══',
+                          '',
+                          'TAGLINE: ' + (r.tagline||''),
+                          'DREAM OUTCOME: ' + (r.dreamOutcome||''),
+                          '',
+                          '── VALUE STACK ──',
+                          ...(r.valueStack||[]).map((v:any)=>v.perceivedValue + '  ' + v.item + '  -  ' + v.description),
+                          'TOTAL PERCEIVED VALUE: ' + (r.totalPerceivedValue||''),
+                          'YOUR PRICE: ' + (r.offerPrice||''),
+                          '',
+                          '── REASON WHY ──',
+                          r.reasonWhy||'',
+                          '',
+                          '── WHAT THEY NEVER HAVE TO DO ──',
+                          ...(r.effortReduction||[]).map((s:string)=>'✓ '+s),
+                          '',
+                          '── PROOF STACK ──',
+                          'Case Study: ' + (r.perceivedLikelihood?.caseStudy||''),
+                          'Credential: ' + (r.perceivedLikelihood?.credential||''),
+                          'Demonstration: ' + (r.perceivedLikelihood?.demonstration||''),
+                          '',
+                          '── URGENCY ──',
+                          r.urgency||'',
+                          '',
+                          '── SCARCITY ──',
+                          r.scarcity||'',
+                          '',
+                          '── GUARANTEE ──',
+                          r.guarantee||'',
+                          '',
+                          '── EMAIL ──',
+                          'Subject: ' + (r.email?.subject||''),
+                          'Preheader: ' + (r.email?.preheader||''),
+                          '',
+                          r.email?.body||'',
+                          '',
+                          '── SMS SEQUENCE ──',
+                          ...(r.sms||[]).map((s:any)=>'Touch ' + s.touch + ' (' + s.timing + '): ' + s.message),
+                          '',
+                          '── SOCIAL POSTS ──',
+                          'FACEBOOK:', r.facebook||'',
+                          '', 'INSTAGRAM:', r.instagram||'',
+                          '', 'NEXTDOOR:', r.nextdoor||'',
+                          '', 'FACEBOOK GROUP:', r.facebookGroup||'',
+                          '', 'GMB:', r.gmb||'',
+                          '',
+                          '── GHL IMPLEMENTATION ──',
+                          r.ghlNotes||'',
+                          '',
+                          '── HEADLINE VARIATIONS ──',
+                          ...(r.magicHeadlines||[]).map((h:string,i:number)=>(i+1)+'. '+h),
+                        ].join('\n');
+                        await navigator.clipboard.writeText(brief);
+                        setCampCopied('fullbrief');
+                        setTimeout(()=>setCampCopied(''),3000);
+                      }}>
+                      {campCopied==='fullbrief' ? '✓ Copied Full Brief!' : '📋 Copy Full Campaign Brief'}
+                    </button>
+                  </div>
+
                   {/* Section Nav */}
                   <div style={{display:'flex',gap:0,borderBottom:'1px solid #141414',marginBottom:16,flexWrap:'wrap'}}>
                     {[
@@ -1982,11 +2048,28 @@ export default function Home() {
                         </div>
                         <div style={{display:'flex',justifyContent:'space-between',padding:'8px 0',borderTop:'1px solid #1a1a1a'}}>
                           <span style={{fontFamily:"'Oswald',sans-serif",fontSize:10,letterSpacing:'0.1em',textTransform:'uppercase',color:'#555'}}>Total Perceived Value</span>
-                          <span style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:900,color:'#C8A96E'}}>{campResult.totalPerceivedValue}</span>
+                          <span style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:900,color:'#C8A96E',textDecoration:'line-through',opacity:0.7}}>{campResult.totalPerceivedValue}</span>
                         </div>
-                        <div style={{display:'flex',justifyContent:'space-between',padding:'6px 0'}}>
-                          <span style={{fontFamily:"'Oswald',sans-serif",fontSize:10,letterSpacing:'0.1em',textTransform:'uppercase',color:'#555'}}>Your Price</span>
-                          <span style={{fontSize:14,color:'#EDE8DC'}}>{campResult.offerPrice}</span>
+                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderTop:'2px solid #C8A96E',marginTop:4}}>
+                          <div>
+                            <div style={{fontFamily:"'Oswald',sans-serif",fontSize:10,letterSpacing:'0.1em',textTransform:'uppercase',color:'#C8A96E',marginBottom:2}}>Your Price</div>
+                            <div style={{fontFamily:"'Playfair Display',serif",fontSize:28,fontWeight:900,color:'#EDE8DC',lineHeight:1}}>{campResult.offerPrice}</div>
+                          </div>
+                          <div style={{background:'#C8A96E',padding:'8px 16px',textAlign:'center'}}>
+                            <div style={{fontFamily:"'Oswald',sans-serif",fontSize:8,letterSpacing:'0.2em',textTransform:'uppercase',color:'#0d0c08',marginBottom:2}}>Value Ratio</div>
+                            <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:900,color:'#0d0c08',lineHeight:1}}>
+                              {(()=>{
+                                const total = parseFloat((campResult.totalPerceivedValue||'').replace(/[$,]/g,'')) || 0;
+                                const price = parseFloat((campResult.offerPrice||'').replace(/[$,]/g,'')) || 0;
+                                if (total > 0 && price > 0) {
+                                  const ratio = Math.round(total / price);
+                                  return ratio + 'x';
+                                }
+                                return 'High';
+                              })()}
+                            </div>
+                            <div style={{fontSize:8,color:'rgba(13,12,8,0.6)',fontFamily:"'Oswald',sans-serif",letterSpacing:'0.1em'}}>VALUE</div>
+                          </div>
                         </div>
                       </div>
 
@@ -2007,6 +2090,58 @@ export default function Home() {
                           </div>
                         ))}
                       </div>
+
+                      {/* Reason Why (deep-discount) */}
+                      {campResult.reasonWhy && (
+                        <div style={{background:'#080808',border:'1px solid #141414',padding:'12px 14px',marginTop:4}}>
+                          <div style={{fontFamily:"'Oswald',sans-serif",fontSize:8,letterSpacing:'0.2em',textTransform:'uppercase',color:'#555',marginBottom:5}}>📌 The Reason Why</div>
+                          <div style={{fontSize:12,color:'#666',lineHeight:1.5,fontStyle:'italic'}}>{campResult.reasonWhy}</div>
+                          <button style={{marginTop:8,fontSize:9,color:'#333',background:'transparent',border:'1px solid #141414',padding:'2px 8px',cursor:'pointer'}}
+                            onClick={()=>copyCamp('reasonWhy', campResult.reasonWhy||'')}>
+                            {campCopied==='reasonWhy'?'✓ Copied':'Copy'}
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Effort Reduction */}
+                      {campResult.effortReduction?.length > 0 && (
+                        <div style={{background:'#080808',border:'1px solid #141414',padding:'12px 14px',marginTop:4}}>
+                          <div style={{fontFamily:"'Oswald',sans-serif",fontSize:8,letterSpacing:'0.2em',textTransform:'uppercase',color:'#555',marginBottom:8}}>⚡ What They Never Have to Do</div>
+                          <div style={{display:'flex',flexDirection:'column',gap:4}}>
+                            {(campResult.effortReduction as string[]).map((item:string,i:number)=>(
+                              <div key={i} style={{fontSize:12,color:'#555',lineHeight:1.4,display:'flex',gap:8}}>
+                                <span style={{color:'#2a6a3a',flexShrink:0}}>✓</span>
+                                <span>{item}</span>
+                              </div>
+                            ))}
+                          </div>
+                          <button style={{marginTop:8,fontSize:9,color:'#333',background:'transparent',border:'1px solid #141414',padding:'2px 8px',cursor:'pointer'}}
+                            onClick={()=>copyCamp('effort', (campResult.effortReduction||[]).map((s:string)=>'✓ '+s).join('\n'))}>
+                            {campCopied==='effort'?'✓ Copied':'Copy List'}
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Perceived Likelihood */}
+                      {campResult.perceivedLikelihood && (
+                        <div style={{background:'#08100a',border:'1px solid #1a2a1a',padding:'12px 14px',marginTop:4}}>
+                          <div style={{fontFamily:"'Oswald',sans-serif",fontSize:8,letterSpacing:'0.2em',textTransform:'uppercase',color:'#2a6a3a',marginBottom:8}}>🏆 Perceived Likelihood Stack</div>
+                          {[
+                            {label:'Case Study', key:'caseStudy', text: campResult.perceivedLikelihood?.caseStudy},
+                            {label:'Credentials', key:'credential', text: campResult.perceivedLikelihood?.credential},
+                            {label:'Demonstration', key:'demonstration', text: campResult.perceivedLikelihood?.demonstration},
+                          ].filter(f=>f.text).map((f,i)=>(
+                            <div key={i} style={{marginBottom:8,paddingBottom:8,borderBottom:'1px solid #0d0d0d'}}>
+                              <div style={{fontSize:9,color:'#333',textTransform:'uppercase',letterSpacing:'0.1em',fontFamily:"'Oswald',sans-serif",marginBottom:3}}>{f.label}</div>
+                              <div style={{fontSize:12,color:'#555',lineHeight:1.45,fontStyle:'italic'}}>{f.text}</div>
+                              <button style={{marginTop:4,fontSize:9,color:'#333',background:'transparent',border:'1px solid #141414',padding:'2px 8px',cursor:'pointer'}}
+                                onClick={()=>copyCamp('pl'+f.key, f.text||'')}>
+                                {campCopied==='pl'+f.key?'✓':'Copy'}
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
 
                       {/* M-A-G-I-C Headlines */}
                       {campResult.meta?.magicHeadlines?.length > 0 && (

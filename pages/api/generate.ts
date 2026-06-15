@@ -48,7 +48,9 @@ Available slide types and fields:
 - example: { type:"example", eyebrow, headline, body, lesson, lessonLabel, tag, slideNumber, totalSlides, brandName }
 - cta: { type:"cta", eyebrow, headline, body, ctaText, ctaUrl, brandName }
 
-Rules: always start with cover, end with cta. Headlines: punchy and direct. Bullets: specific details not vague platitudes. Eyebrows: 1-3 ALL CAPS words.`;
+Rules: always start with cover, always end with cta. Headlines: punchy, direct, specific - never vague. Bullets: real specifics not platitudes - numbers beat adjectives. Eyebrows: 1-3 ALL CAPS words.
+
+MAKE CONTENT WORTH SAVING: Every carousel must pass this test - would someone screenshot this and send it to a friend? Design each slide to stand alone as a piece of value. Rules: (1) Include at least one slide with a specific number or stat worth remembering. (2) Name your frameworks - The 3-Call Close System is more saveable than tips for closing. (3) At least one slide must contain information the reader did not know and now cannot un-know. (4) The lesson line on every lesson slide must be a one-sentence principle worth screenshotting alone. (5) Checklists and quick-wins: every item must be specific enough to act on TODAY not someday. (6) Hot-takes: the take must be strong enough to get someone to comment this is wrong OR this changed how I think - mild opinions are scroll-past content.`;
 
   const userPrompt = `Format: ${formatDesc}
 
