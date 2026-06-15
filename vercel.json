@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "functions": {
+    "pages/api/screenshot.ts": {
+      "maxDuration": 60,
+      "memory": 3009
+    },
+    "pages/api/generate.ts": {
+      "maxDuration": 30
+    }
+  }
+}

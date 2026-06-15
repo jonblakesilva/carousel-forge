@@ -1,0 +1,25 @@
+{
+  "name": "carousel-generator",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@sparticuz/chromium": "123.0.1",
+    "html-to-image": "^1.11.13",
+    "next": "14.2.3",
+    "puppeteer-core": "22.8.2",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@netlify/plugin-nextjs": "^5.15.11",
+    "@types/node": "20.12.7",
+    "@types/react": "18.3.1",
+    "puppeteer": "^25.1.0",
+    "typescript": "5.4.5"
+  }
+}
