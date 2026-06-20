@@ -1,4 +1,4 @@
-import { getStore } from '@netlify/blobs';
+import { Blobs } from '@netlify/blobs';
 
 export interface ErrorLogEntry {
   id: string;
@@ -10,7 +10,21 @@ export interface ErrorLogEntry {
 }
 
 const STORE_NAME = 'error-logs';
+const STORE_KEY = `${STORE_NAME}/log`;
 const MAX_LOGS = 200;
+
+const blobsClient = process.env.NETLIFY_SITE_ID && process.env.NETLIFY_AUTH_TOKEN
+  ? new Blobs({
+      authentication: { token: process.env.NETLIFY_AUTH_TOKEN },
+      siteID: process.env.NETLIFY_SITE_ID,
+    })
+  : null;
+
+async function getStoredLogs(): Promise<ErrorLogEntry[]> {
+  if (!blobsClient) return [];
+  const raw = await blobsClient.get(STORE_KEY, { type: 'json' }).catch(() => null);
+  return Array.isArray(raw) ? raw : [];
+}
 
 /**
  * Logs an error to Netlify Blobs so failures are visible later instead of
@@ -19,7 +33,7 @@ const MAX_LOGS = 200;
  */
 export async function logError(entry: Omit<ErrorLogEntry, 'id' | 'timestamp'>): Promise<void> {
   try {
-    const store = getStore(STORE_NAME);
+    if (!blobsClient) return;
     const id = Date.now().toString() + '-' + Math.random().toString(36).slice(2, 8);
     const fullEntry: ErrorLogEntry = {
       id,
@@ -27,11 +41,9 @@ export async function logError(entry: Omit<ErrorLogEntry, 'id' | 'timestamp'>): 
       ...entry,
     };
 
-    const existingRaw = await store.get('log', { type: 'json' }).catch(() => null);
-    const existing: ErrorLogEntry[] = Array.isArray(existingRaw) ? existingRaw : [];
-
+    const existing = await getStoredLogs();
     const updated = [fullEntry, ...existing].slice(0, MAX_LOGS);
-    await store.setJSON('log', updated);
+    await blobsClient.setJSON(STORE_KEY, updated);
   } catch (e) {
     // Swallow — logging must never break the primary request
     console.error('Failed to write error log:', e);
@@ -40,9 +52,7 @@ export async function logError(entry: Omit<ErrorLogEntry, 'id' | 'timestamp'>): 
 
 export async function getErrorLogs(): Promise<ErrorLogEntry[]> {
   try {
-    const store = getStore(STORE_NAME);
-    const raw = await store.get('log', { type: 'json' }).catch(() => null);
-    return Array.isArray(raw) ? raw : [];
+    return await getStoredLogs();
   } catch (e) {
     console.error('Failed to read error logs:', e);
     return [];
@@ -51,8 +61,8 @@ export async function getErrorLogs(): Promise<ErrorLogEntry[]> {
 
 export async function clearErrorLogs(): Promise<void> {
   try {
-    const store = getStore(STORE_NAME);
-    await store.setJSON('log', []);
+    if (!blobsClient) return;
+    await blobsClient.setJSON(STORE_KEY, []);
   } catch (e) {
     console.error('Failed to clear error logs:', e);
   }

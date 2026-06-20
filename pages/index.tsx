@@ -3,6 +3,7 @@ import * as htmlToImage from 'html-to-image';
 import Head from 'next/head';
 import { CardData, generateCardHTML } from '../lib/cardTemplate';
 import { ALL_TEMPLATES, CAROUSEL_TEMPLATES, TEMPLATE_CATEGORIES, SUGGESTED_BOOKS } from '../lib/templates';
+import { GROUP_ENGAGEMENT_TEMPLATES } from '../lib/templates-group-engagement';
 
 type Step = 'form' | 'edit' | 'preview';
 type TabType = 'generate' | 'templates' | 'ideas' | 'swipe' | 'tools' | 'library' | 'quote-image' | 'campaign' | 'groupengagement';
@@ -287,6 +288,13 @@ export default function Home() {
   const [isGeneratingCampaign, setIsGeneratingCampaign] = useState(false);
   const [campCopied, setCampCopied] = useState('');
   const [campActiveSection, setCampActiveSection] = useState('offer');
+  const [geHookType, setGeHookType] = useState<'myth'|'news'|'freeoffer'|'poll'|'failstory'>('myth');
+  const [geOfferName, setGeOfferName] = useState('');
+  const [geOfferDescription, setGeOfferDescription] = useState('');
+  const [geDmKeyword, setGeDmKeyword] = useState('YES');
+  const [geResult, setGeResult] = useState<any>(null);
+  const [isGeneratingGe, setIsGeneratingGe] = useState(false);
+  const [geCopied, setGeCopied] = useState('');
   // Bulk template run
   const [bulkSelected, setBulkSelected] = useState<string[]>([]);
   const [bulkResults, setBulkResults] = useState<{id:string;label:string;cards:any[];done:boolean}[]>([]);
@@ -425,6 +433,53 @@ export default function Home() {
       console.error('Campaign error:', err);
     }
     finally { setIsGeneratingCampaign(false); }
+  };
+
+  const handleGenerateGroupEngagement = async () => {
+    setIsGeneratingGe(true);
+    setGeResult(null);
+    setError('');
+    try {
+      const res = await fetch('/api/group-engagement', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          niche: campNiche,
+          hookType: geHookType,
+          offerName: geOfferName,
+          offerDescription: geOfferDescription,
+          brandName,
+          ctaUrl,
+          dmKeyword: geDmKeyword,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Group engagement generation failed');
+      setGeResult(data);
+      setActiveTab('groupengagement');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Generation failed';
+      setError('Group Engagement: ' + msg);
+      console.error('Group Engagement error:', err);
+    } finally {
+      setIsGeneratingGe(false);
+    }
+  };
+
+  const copyGe = async (key: string, text: string) => {
+    await navigator.clipboard.writeText(text);
+    setGeCopied(key);
+    setTimeout(()=>setGeCopied(''),2000);
+  };
+
+  const handleLoadGroupEngagementTemplate = (tpl: typeof GROUP_ENGAGEMENT_TEMPLATES[number]) => {
+    setCampNiche(tpl.niche);
+    setGeHookType(tpl.hookType);
+    setGeOfferName(tpl.result.groupPost.slice(0, 60));
+    setGeOfferDescription('Load a template to use this result directly or edit the details.');
+    setGeResult(tpl.result);
+    setActiveTab('groupengagement');
+    setError('');
   };
 
   const copyCamp = async (key: string, text: string) => {
@@ -1047,6 +1102,7 @@ export default function Home() {
               <button className={`tab ${activeTab==='library'?'active':''}`} onClick={()=>setActiveTab('library')}>📁 Library ({savedCarousels.length})</button>
               <button className={`tab ${activeTab==='quote-image'?'active':''}`} onClick={()=>setActiveTab('quote-image')}>🐦 Quote Image</button>
               <button className={`tab ${activeTab==='campaign'?'active':''}`} onClick={()=>setActiveTab('campaign')}>🚀 Campaign Engine</button>
+              <button className={`tab ${activeTab==='groupengagement'?'active':''}`} onClick={()=>setActiveTab('groupengagement')}>🎯 Group Engagement</button>
             </div>
 
             {/* TEMPLATES TAB */}
@@ -2274,10 +2330,10 @@ export default function Home() {
                           <div><span style={{fontSize:10,color:'#333',textTransform:'uppercase',letterSpacing:'0.1em',fontFamily:"'Oswald',sans-serif"}}>Urgency: </span><span style={{fontSize:13,color:'#666'}}>{campResult.meta?.seasonal?.urgency}</span></div>
                         </div>
                       </div>
-                      {campResult.ghlNotes || campResult.implementationNotes && (
+                      {(campResult.ghlNotes || campResult.implementationNotes) && (
                         <div className="cap-box">
                           <div className="cap-head"><span className="cap-title">GHL Implementation Notes</span></div>
-                          <div style={{fontSize:13,color:'#666',lineHeight:1.6,fontStyle:'italic',fontFamily:"'EB Garamond',serif"}}>{campResult.implementationNotes}</div>
+                          <div style={{fontSize:13,color:'#666',lineHeight:1.6,fontStyle:'italic',fontFamily:"'EB Garamond',serif"}}>{campResult.implementationNotes || campResult.ghlNotes}</div>
                         </div>
                       )}
                       <div style={{background:'#0a0808',border:'1px solid #1a1010',padding:'12px 16px'}}>
@@ -2293,9 +2349,168 @@ export default function Home() {
                     </div>
                   )}
 
-                </>)}
+                </>) }
               </div>
             </>)}
+
+              {/* GROUP ENGAGEMENT TAB */}
+              {activeTab==='groupengagement' && (<>
+                <div>
+                  <div className="form-ey">Group Engagement</div>
+                  <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:32,fontWeight:900,marginBottom:4}}>Facebook Group Post Generator</h2>
+                  <p style={{fontSize:13,fontStyle:'italic',color:'#444',marginBottom:8}}>Build comments-first Facebook Group content, DM follow-up scripts, and short video messaging for local homeowner audiences.</p>
+                  <div style={{background:'#080808',border:'1px solid #141414',padding:'10px 14px',marginBottom:20,fontSize:11,color:'#444',fontStyle:'italic',lineHeight:1.6}}>
+                    🎯 Use the templates below to load a ready-made post instantly, or customize the hook type and offer details for a fresh Group Engagement campaign.
+                  </div>
+
+                  {error.startsWith('Group Engagement:') && (
+                    <div style={{background:'#120000',border:'1px solid #440000',color:'#ff9b9b',padding:'14px 16px',marginBottom:16}}>
+                      <strong>{error}</strong>
+                      <div style={{marginTop:10}}>
+                        <button className="btn-p" onClick={handleGenerateGroupEngagement} style={{width:'auto'}}>{isGeneratingGe ? 'Retrying...' : 'Try Again'}</button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="section-box" style={{marginBottom:16}}>
+                    <div className="section-box-head"><span className="section-box-title">📌 Templates</span></div>
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))',gap:12}}>
+                      {GROUP_ENGAGEMENT_TEMPLATES.map(tpl => (
+                        <div key={tpl.id} className="book-card" onClick={()=>handleLoadGroupEngagementTemplate(tpl)}>
+                          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:10,marginBottom:10}}>
+                            <div>
+                              <div className="book-author">{tpl.hookType.toUpperCase()}</div>
+                              <div className="book-title" style={{fontSize:16}}>{tpl.label}</div>
+                            </div>
+                            <div style={{fontSize:20}}>{tpl.niche==='Lawn Care'?'🌿':tpl.niche==='Roofing'?'🏠':tpl.niche==='HVAC'?'❄️':tpl.niche==='Plumbing'?'🔧':'🎯'}</div>
+                          </div>
+                          <div style={{fontSize:12,color:'#666',lineHeight:1.5,whiteSpace:'normal',minHeight:74}}>{tpl.result.groupPost.slice(0,180)}…</div>
+                          <button className="tpl-load-btn" style={{marginTop:12}}>Load Template →</button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="section-box" style={{marginBottom:16}}>
+                    <div className="section-box-head"><span className="section-box-title">⚙️ Setup Your Post</span></div>
+                    <div className="fr2" style={{marginBottom:12}}>
+                      <div>
+                        <span className="slabel">Industry / Niche</span>
+                        <select value={campNiche} onChange={e=>setCampNiche(e.target.value)}
+                          style={{width:'100%',background:'#050505',border:'1px solid #1a1a1a',color:'#EDE8DC',fontFamily:"'EB Garamond',serif",fontSize:15,padding:'9px 12px',outline:'none'}}>
+                          {NICHES.map(n=>(<option key={n.value} value={n.value}>{n.label}</option>))}
+                        </select>
+                      </div>
+                      <div>
+                        <span className="slabel">DM Keyword</span>
+                        <input type="text" value={geDmKeyword} onChange={e=>setGeDmKeyword(e.target.value)} placeholder="YES" style={{width:'100%'}} />
+                      </div>
+                    </div>
+
+                    <div style={{marginBottom:12}}>
+                      <span className="slabel">Hook Type</span>
+                      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:10}}>
+                        {[
+                          {value:'myth', icon:'🚫', label:'Myth-Bust', desc:'Bust a common homeowner myth and invite comments.'},
+                          {value:'news', icon:'📰', label:'News/Trend', desc:'Reference a recent trend or storm to spark discussion.'},
+                          {value:'freeoffer', icon:'🎁', label:'Free Offer', desc:'Share a free check story and ask for a reaction.'},
+                          {value:'poll', icon:'📊', label:'Poll', desc:'Ask an easy opinion question to drive quick comments.'},
+                          {value:'failstory', icon:'⚠️', label:'Fail Story', desc:'Tell a cautionary tale that gets people sharing.'},
+                        ].map(option=>(
+                          <div key={option.value}
+                            onClick={()=>setGeHookType(option.value as any)}
+                            style={{padding:'14px',cursor:'pointer',border:`1px solid ${geHookType===option.value?'#C8A96E':'#141414'}`,background:geHookType===option.value?'#0d0c08':'#080808'}}>
+                            <div style={{fontSize:20,marginBottom:8}}>{option.icon}</div>
+                            <div style={{fontFamily:"'Oswald',sans-serif",fontSize:10,letterSpacing:'0.2em',textTransform:'uppercase',color:'#C8A96E',marginBottom:6}}>{option.label}</div>
+                            <div style={{fontSize:12,color:'#888',lineHeight:1.4}}>{option.desc}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="fr2" style={{marginBottom:12}}>
+                      <div>
+                        <label className="label">Offer Name</label>
+                        <input type="text" value={geOfferName} onChange={e=>setGeOfferName(e.target.value)} placeholder="Example: Free Home HVAC Check" />
+                      </div>
+                      <div>
+                        <label className="label">Offer Description</label>
+                        <textarea value={geOfferDescription} onChange={e=>setGeOfferDescription(e.target.value)} rows={3} placeholder="What the free check or offer includes." />
+                      </div>
+                    </div>
+
+                    <button className="btn-p" onClick={handleGenerateGroupEngagement} disabled={isGeneratingGe} style={{width:'100%'}}>
+                      {isGeneratingGe ? 'Generating Group Post...' : 'Generate Group Engagement →'}
+                    </button>
+                  </div>
+
+                  {geResult && (
+                    <div style={{display:'flex',flexDirection:'column',gap:16}}>
+                      <div className="section-box">
+                        <div className="section-box-head"><span className="section-box-title">📝 Group Post</span>
+                          <button className="btn-g" onClick={()=>copyGe('groupPost', geResult.groupPost || '')}>{geCopied==='groupPost'?'✓ Copied':'Copy'}</button>
+                        </div>
+                        <div style={{whiteSpace:'pre-wrap',fontSize:13,color:'#DDD',lineHeight:1.7}}>{geResult.groupPost}</div>
+                      </div>
+
+                      <div className="section-box">
+                        <div className="section-box-head"><span className="section-box-title">💡 Why It Works</span>
+                          <button className="btn-g" onClick={()=>copyGe('whyItWorks', geResult.whyItWorks || '')}>{geCopied==='whyItWorks'?'✓ Copied':'Copy'}</button>
+                        </div>
+                        <div style={{fontSize:13,color:'#DDD',lineHeight:1.7}}>{geResult.whyItWorks}</div>
+                      </div>
+
+                      <div className="section-box">
+                        <div className="section-box-head"><span className="section-box-title">📌 Group Posting Tips</span></div>
+                        <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                          {(geResult.groupPostingTips || []).map((tip:string,i:number)=>(
+                            <div key={i} style={{display:'flex',gap:10}}>
+                              <span style={{color:'#C8A96E'}}>•</span>
+                              <div style={{fontSize:13,color:'#DDD',lineHeight:1.6}}>{tip}</div>
+                            </div>
+                          ))}
+                        </div>
+                        <button className="btn-g" onClick={()=>copyGe('groupPostingTips', (geResult.groupPostingTips || []).join('\n'))}>
+                          {geCopied==='groupPostingTips'?'✓ Copied':'Copy Tips'}
+                        </button>
+                      </div>
+
+                      <div className="section-box">
+                        <div className="section-box-head"><span className="section-box-title">💬 DM Script</span></div>
+                        {['trigger','openingMessage','offerMessage','followUpIfNoResponse'].map((field:string)=>(
+                          <div key={field} style={{marginBottom:14}}>
+                            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
+                              <div style={{fontFamily:"'Oswald',sans-serif",fontSize:9,letterSpacing:'0.2em',textTransform:'uppercase',color:'#C8A96E'}}>{field === 'trigger' ? 'Trigger' : field === 'openingMessage' ? 'Opening Message' : field === 'offerMessage' ? 'Offer Message' : 'Follow-Up If No Response'}</div>
+                              <button className="btn-g" onClick={()=>copyGe(field, geResult.dmScript?.[field] || '')}>{geCopied===field?'✓ Copied':'Copy'}</button>
+                            </div>
+                            <div style={{background:'#050505',border:'1px solid #141414',padding:'12px',whiteSpace:'pre-wrap',fontSize:13,color:'#DDD',lineHeight:1.6}}>{geResult.dmScript?.[field]}</div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="section-box">
+                        <div className="section-box-head"><span className="section-box-title">🎬 Video Script</span></div>
+                        <div style={{display:'flex',gap:10,flexWrap:'wrap',marginBottom:12}}>
+                          <div style={{flex:1}}>
+                            <div className="slabel">Hook</div>
+                            <div style={{background:'#050505',border:'1px solid #141414',padding:'12px',whiteSpace:'pre-wrap',fontSize:13,color:'#DDD',lineHeight:1.6}}>{geResult.videoScriptHook}</div>
+                            <button className="btn-g" style={{marginTop:8}} onClick={()=>copyGe('videoScriptHook', geResult.videoScriptHook || '')}>{geCopied==='videoScriptHook'?'✓ Copied':'Copy Hook'}</button>
+                          </div>
+                        </div>
+                        <div style={{background:'#050505',border:'1px solid #141414',padding:'14px',whiteSpace:'pre-wrap',fontSize:13,color:'#DDD',lineHeight:1.7}}>{geResult.videoScript}</div>
+                        <button className="btn-g" onClick={()=>copyGe('videoScript', geResult.videoScript || '')} style={{marginTop:10}}>{geCopied==='videoScript'?'✓ Copied':'Copy Script'}</button>
+                      </div>
+
+                      <div className="section-box">
+                        <div className="section-box-head"><span className="section-box-title">🧾 Video Caption</span>
+                          <button className="btn-g" onClick={()=>copyGe('videoCaption', geResult.videoCaption || '')}>{geCopied==='videoCaption'?'✓ Copied':'Copy'}</button>
+                        </div>
+                        <div style={{background:'#050505',border:'1px solid #141414',padding:'14px',fontSize:13,color:'#DDD',lineHeight:1.7,whiteSpace:'pre-wrap'}}>{geResult.videoCaption}</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>)}
 
           {/* ── LOADING ── */}
           {isLoading&&<div className="loading-ov"><div className="spin"/><div className="loading-t">{statusMsg||'Working...'}</div></div>}
