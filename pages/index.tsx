@@ -5,7 +5,7 @@ import { CardData, generateCardHTML } from '../lib/cardTemplate';
 import { ALL_TEMPLATES, CAROUSEL_TEMPLATES, TEMPLATE_CATEGORIES, SUGGESTED_BOOKS } from '../lib/templates';
 
 type Step = 'form' | 'edit' | 'preview';
-type TabType = 'generate' | 'templates' | 'ideas' | 'swipe' | 'tools' | 'library' | 'quote-image' | 'campaign';
+type TabType = 'generate' | 'templates' | 'ideas' | 'swipe' | 'tools' | 'library' | 'quote-image' | 'campaign' | 'groupengagement';
 type SlideCount = 3 | 5 | 7;
 
 /* ─── THEMES ─────────────────────────────────────────────────── */
