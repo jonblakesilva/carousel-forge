@@ -274,16 +274,22 @@ const SEASONAL: Record<string, NicheSeasons> = {
   },
 };
 
-// Fill in any missing months with a sensible default
+// Fill in any missing months with a sensible, CUSTOMER-FACING default.
+// IMPORTANT: this fallback must speak to the end customer's problem with their
+// [niche] need (homeowner/consumer pain), never to the trade business's own
+// marketing/lead-gen problem -- that mismatch previously leaked B2B copy into
+// B2C campaigns whenever a niche/month combo was missing from the hand-written
+// SEASONAL data above.
 const ALL_NICHES = Object.keys(SEASONAL);
 MONTHS.forEach(m => {
   ALL_NICHES.forEach(n => {
     if (!SEASONAL[n][m]) {
+      const service = n.toLowerCase();
       SEASONAL[n][m] = {
-        trigger: `${m.toLowerCase()} seasonal campaign`,
-        pain: `${n} businesses lose thousands every ${m} to competitors who run smarter campaigns`,
-        dream: `Fully booked calendar through ${m} with quality clients who pay on time`,
-        urgency: `${m} availability is filling  -  once the schedule is full new clients wait weeks`,
+        trigger: `${m.toLowerCase()} ${service} service push`,
+        pain: `Most homeowners do not think about ${service} until something goes wrong, and ${m} is exactly when small issues turn into expensive emergencies`,
+        dream: `${service.charAt(0).toUpperCase() + service.slice(1)} fully handled this ${m} with zero surprises and zero emergency calls`,
+        urgency: `${m} appointment slots fill quickly once the season gets busy  -  booking now means getting a convenient time instead of whatever is left`,
       };
     }
   });
