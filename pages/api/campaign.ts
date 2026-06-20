@@ -698,9 +698,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const fence = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
     if (fence) jsonStr = fence[1].trim();
     const s = jsonStr.indexOf('{');
-    const e = jsonStr.lastIndexOf('}');
-    if (s === -1 || e === -1) throw new Error('No JSON in response: ' + raw.slice(0, 200));
-    return JSON.parse(jsonStr.slice(s, e + 1));
+    if (s === -1) throw new Error('No JSON in response: ' + raw.slice(0, 200));
+    let candidate = jsonStr.slice(s);
+    const e = candidate.lastIndexOf('}');
+    if (e !== -1) candidate = candidate.slice(0, e + 1);
+    try {
+      return JSON.parse(candidate);
+    } catch (parseErr) {
+      // Response was likely truncated mid-JSON (hit max_tokens). Attempt a repair:
+      // close any open strings/arrays/objects by trimming back to the last complete field.
+      let repaired = candidate;
+      // Trim trailing partial key/value after the last complete comma-separated entry
+      const lastGoodComma = repaired.lastIndexOf(',');
+      const lastCloseBrace = Math.max(repaired.lastIndexOf('}'), repaired.lastIndexOf(']'));
+      if (lastGoodComma > lastCloseBrace) {
+        repaired = repaired.slice(0, lastGoodComma);
+      }
+      // Count and close any unbalanced brackets
+      const opens = (repaired.match(/\{/g) || []).length;
+      const closes = (repaired.match(/\}/g) || []).length;
+      const opensArr = (repaired.match(/\[/g) || []).length;
+      const closesArr = (repaired.match(/\]/g) || []).length;
+      repaired += ']'.repeat(Math.max(0, opensArr - closesArr));
+      repaired += '}'.repeat(Math.max(0, opens - closes));
+      try {
+        return JSON.parse(repaired);
+      } catch {
+        throw new Error('Could not parse JSON even after repair attempt. Raw length: ' + raw.length + '. Tail: ' + raw.slice(-150));
+      }
+    }
   }
 
   try {
@@ -742,8 +768,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // ── Fire both passes in PARALLEL  -  pass 2 no longer depends on pass 1's output ──
     const [core, social] = await Promise.all([
-      callClaude(pass1Prompt, 1800),
-      callClaude(pass2Prompt, 1500),
+      callClaude(pass1Prompt, 2800),
+      callClaude(pass2Prompt, 1800),
     ]);
 
     // ── MERGE both passes ──────────────────────────────────────────────────────
