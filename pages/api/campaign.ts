@@ -605,7 +605,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { niche, month, offerType, brandName, ctaUrl, customOffer, clientCount } = req.body;
   if (!niche || !month || !offerType) return res.status(400).json({ error: 'niche, month, and offerType are required' });
 
-  const seasonal = SEASONAL[niche]?.[month] || { trigger: month + ' campaign', pain: niche + ' businesses need more clients in ' + month, dream: 'Fully booked calendar with quality clients', urgency: 'Limited availability this month' };
+  const seasonal = SEASONAL[niche]?.[month] || {
+    trigger: month + ' ' + niche.toLowerCase() + ' service push',
+    pain: 'Most homeowners put off ' + niche.toLowerCase() + ' until something goes wrong, and small issues get expensive fast once they are ignored',
+    dream: niche + ' fully handled this ' + month + ' with zero surprises and zero emergency calls',
+    urgency: month + ' appointment slots fill quickly once the season gets busy  -  booking now means a convenient time instead of whatever is left',
+  };
   const framework = OFFER_FRAMEWORKS[offerType as keyof typeof OFFER_FRAMEWORKS] || OFFER_FRAMEWORKS['free-gift'];
   const suggestions = getOfferSuggestions(offerType, niche);
   const limit = clientCount || 12;
