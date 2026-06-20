@@ -655,9 +655,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     '  "urgency": "Specific urgency statement with a real deadline date in ' + month + '",\n' +
     '  "scarcity": "Specific scarcity  -  limited to ' + limit + ' clients with a real reason why",\n' +
     '  "guarantee": "Bold specific guarantee with clear terms",\n' +
-    '  "reasonWhy": "Specific believable operational reason why the price is lower or gift is free. NOT: limited time. YES: We have crew openings this week sitting idle so we pass the savings to clients who book now  -  must be specific and credible.",\\n' +
-    '  "effortReduction": ["5-8 specific things the customer NEVER has to do, remember, or worry about. Examples: never have to remember to follow up, never write a single text, never track who opened what, never guess which leads are hot. Be exhaustive."],\\n' +
-    '  "perceivedLikelihood": {"caseStudy": "Mini story: client type + situation + measurable result with real numbers", "credential": "Specific credentialing: years in business, number of clients served, specific result achieved", "demonstration": "Proof element prospect can see before buying: screenshot, before/after, data point"},\\n' +
+    '  "reasonWhy": "Specific believable operational reason why the price is lower or gift is free. NOT: limited time. YES: We have crew openings this week sitting idle so we pass the savings to clients who book now  -  must be specific and credible.",\n' +
+    '  "effortReduction": ["5-8 specific things the customer NEVER has to do, remember, or worry about. Examples: never have to remember to follow up, never write a single text, never track who opened what, never guess which leads are hot. Be exhaustive."],\n' +
+    '  "perceivedLikelihood": {"caseStudy": "Mini story: client type + situation + measurable result with real numbers", "credential": "Specific credentialing: years in business, number of clients served, specific result achieved", "demonstration": "Proof element prospect can see before buying: screenshot, before/after, data point"},\n' +
     '  "email": {"subject": "Subject under 50 chars  -  curiosity or benefit driven", "preheader": "Preview text under 85 chars", "body": "200-300 word email. Personal. Direct. Written from ' + brand + ' owner. One CTA. Use line breaks for scanning. NO corporate language."},\n' +
     '  "sms": [{"touch": 1, "timing": "Send immediately", "message": "Under 160 chars  -  punchy personal with link"}, {"touch": 2, "timing": "3 days later", "message": "Different angle under 160 chars"}, {"touch": 3, "timing": "48 hours before deadline", "message": "Final urgency under 160 chars with deadline"}],\n' +
     '  "facebook": "Facebook post 100-150 words. Conversational. Ask a question. Include offer details and CTA.",\n' +
@@ -724,10 +724,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       '  "magicHeadlines": ["GENERATE_IN_PASS_2"]'
     );
 
-    const core = await callClaude(pass1Prompt, 1500);
-
-    // ── PASS 2: Social posts + headlines + giveaway (parallel-safe, ~2500 tokens) ─
-    const pass2Prompt = 'You are a direct response copywriter for ' + niche + ' businesses. Generate the following content for a ' + offerType + ' campaign called "' + (core.offerName || offerSuggestion) + '" running in ' + month + '. Dream outcome: ' + (core.dreamOutcome || seasonal.dream) + '. Brand: ' + brand + '. Return ONLY valid JSON.\n\n' +
+    // ── PASS 2: Social posts + headlines + giveaway  -  built from KNOWN inputs only (no dependency on pass 1) ─
+    const pass2Prompt = 'You are a direct response copywriter for ' + niche + ' businesses. Generate the following content for a ' + offerType + ' campaign in ' + month + '. The offer: ' + offerSuggestion + '. Dream outcome to sell: ' + seasonal.dream + '. Customer pain point: ' + seasonal.pain + '. Brand: ' + brand + '. Return ONLY valid JSON.\n\n' +
       '{\n' +
       '  "facebook": "Facebook post 100-150 words. Open with a hook. Conversational. Include specific offer details and CTA.",\n' +
       '  "instagram": "Instagram caption. Bold first line that stops scroll. 3-5 bullet points of value. Clear CTA. 5 niche-relevant hashtags at end.",\n' +
@@ -742,7 +740,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       '  "magicHeadlines": ["Curiosity angle headline using M-A-G-I-C formula", "Benefit and number angle headline", "Social proof or authority angle headline"]\n' +
       '}';
 
-    const social = await callClaude(pass2Prompt, 1500);
+    // ── Fire both passes in PARALLEL  -  pass 2 no longer depends on pass 1's output ──
+    const [core, social] = await Promise.all([
+      callClaude(pass1Prompt, 1800),
+      callClaude(pass2Prompt, 1500),
+    ]);
 
     // ── MERGE both passes ──────────────────────────────────────────────────────
     const campaign = {
