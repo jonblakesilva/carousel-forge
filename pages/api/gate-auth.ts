@@ -19,9 +19,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Set a long-lived cookie holding the password value itself (compared directly
   // in middleware). Internal tool, low-stakes secret, simplest possible approach.
+  // SameSite=None (not Lax) because this app is loaded inside a GHL iframe --
+  // the cookie is cross-site from the browser's perspective even though every
+  // request is same-origin to this app, so Lax would never send it back.
   res.setHeader(
     'Set-Cookie',
-    `${GATE_COOKIE}=${encodeURIComponent(expected)}; Path=/; Max-Age=${60 * 60 * 24 * 90}; HttpOnly; SameSite=Lax; Secure`
+    `${GATE_COOKIE}=${encodeURIComponent(expected)}; Path=/; Max-Age=${60 * 60 * 24 * 90}; HttpOnly; SameSite=None; Secure`
   );
   res.status(200).json({ ok: true });
 }
