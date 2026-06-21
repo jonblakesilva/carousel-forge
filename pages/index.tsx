@@ -871,7 +871,7 @@ export default function Home() {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Oswald:wght@300;400;700&display=swap" rel="stylesheet" />
       </Head>
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         body{background:#090909;color:#EDE8DC;font-family:'EB Garamond',Georgia,serif;min-height:100vh}
         .app{min-height:100vh;display:flex;flex-direction:column}
@@ -1071,7 +1071,7 @@ export default function Home() {
         .idea-topic{font-family:'EB Garamond',serif;font-size:16px;color:#CCC;margin-bottom:4px}
         .idea-hook{font-size:13px;color:#333;font-style:italic}
         .idea-format{font-family:'Oswald',sans-serif;font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:#C8A96E;border:1px solid #C8A96E;padding:2px 8px;white-space:nowrap;flex-shrink:0;opacity:0.6}
-      `}</style>
+      ` }} />
 
       <div className="app">
         <header>
